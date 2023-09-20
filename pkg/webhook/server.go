@@ -371,7 +371,6 @@ func (wh *webhook) handleWebhookValidate(w http.ResponseWriter, req *http.Reques
 
 func reviewResponse(uid types.UID, err error, aletmanagerHost string, resource string, name string, namespace string) *admissionv1.AdmissionReview {
 	// Currently hard coded and commented logic in order to just audit, but in order to get the content we need the policy to be deny.
-	alerter := alertmanager.New(aletmanagerHost, "")
 	// allowed := err == nil
 	//var status int32 = http.StatusAccepted
 	// if err != nil {
@@ -388,18 +387,19 @@ func reviewResponse(uid types.UID, err error, aletmanagerHost string, resource s
 		reason = statusErr.ErrStatus.Reason
 		message = statusErr.ErrStatus.Message
 		//status = statusErr.ErrStatus.Code
-
-		policyName := regexp.MustCompile(`ValidatingAdmissionPolicy '([^']+)'`).FindStringSubmatch(message)
-
-		alertInfo := alertmanager.AlertInfo{
-			Name:        fmt.Sprintf("Failed Policy: %v", policyName[1]),
-			Severity:    string(reason),
-			Resource:    resource,
-			Instance:    name,
-			Namespace:   namespace,
-			Description: message,
+		if aletmanagerHost != "" {
+			policyName := regexp.MustCompile(`ValidatingAdmissionPolicy '([^']+)'`).FindStringSubmatch(message)
+			alerter := alertmanager.New(aletmanagerHost, "")
+			alertInfo := alertmanager.AlertInfo{
+				Name:        fmt.Sprintf("Failed Policy: %v", policyName[1]),
+				Severity:    string(reason),
+				Resource:    resource,
+				Instance:    name,
+				Namespace:   namespace,
+				Description: message,
+			}
+			alerter.Alert(&alertInfo)
 		}
-		alerter.Alert(&alertInfo)
 	}
 
 	return &admissionv1.AdmissionReview{
