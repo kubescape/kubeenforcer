@@ -2,8 +2,6 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-
-
 admissionWebhook:
   generateSelfSignedCertificates: true
   replicaCount: 1
@@ -38,10 +36,9 @@ podAnnotations: {}
 podSecurityContext: {}
 
 securityContext:
+  runAsUser: 0
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: true
-  capabilities:
-    drop: ["ALL"]
 
 service:
   type: ClusterIP
