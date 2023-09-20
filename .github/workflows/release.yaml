@@ -30,9 +30,8 @@ jobs:
         id: image-version
         run: |
           git fetch --tags
-          echo 'IMAGE_VERSION=$(git describe --tags --abbrev=0)' >> $GITHUB_OUTPUT
-          echo 'IMAGE_VERSION=$(git describe --tags --abbrev=0)'
-          echo "$IMAGE_VERSION"
+          echo "IMAGE_VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+          git describe --tags --abbrev=0
 
       - name: Set image name
         id: image-name
