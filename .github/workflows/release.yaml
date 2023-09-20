@@ -24,7 +24,9 @@ jobs:
 
       - name: Set image version
         id: image-version
-        run: echo 'IMAGE_VERSION=$(git describe --tags --abbrev=0)' >> $GITHUB_OUTPUT
+        run:
+        - git fetch --tags
+        - echo 'IMAGE_VERSION=$(git describe --tags --always --abbrev=0)' >> $GITHUB_OUTPUT
 
       - name: Set image name
         id: image-name
@@ -43,4 +45,3 @@ jobs:
 
       - name: Build and push Docker image
         run: docker buildx build . --file ./Dockerfile --tag ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-version.outputs.IMAGE_VERSION }} --tag ${{ steps.image-name.outputs.IMAGE_NAME }}:latest --build-arg image_version=${{ steps.image-version.outputs.IMAGE_VERSION }} --build-arg client=image-release --push --platform linux/amd64,linux/arm64
-

@@ -42,7 +42,7 @@ func main() {
 	flag.StringVar(&certFile, "cert", "server.pem", "Path to TLS certificate file.")
 	flag.StringVar(&keyFile, "key", "server-key.pem", "Path to TLS key file.")
 	flag.StringVar(&listenAddr, "addr", "0.0.0.0:8443", "Address to listen on.")
-	flag.StringVar(&alertmanagerHost, "alertmanager", "armo-alertmanager.celshim.svc.cluster.local:9093", "Address of alertmanager.")
+	flag.StringVar(&alertmanagerHost, "alertmanager", "", "Address of alertmanager.")
 	flag.Parse()
 
 	klog.EnableContextualLogging(true)
