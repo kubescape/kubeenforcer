@@ -36,9 +36,10 @@ podAnnotations: {}
 podSecurityContext: {}
 
 securityContext:
-  runAsUser: 0
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: true
+  capabilities:
+    add: ["NET_ADMIN"]
 
 service:
   type: ClusterIP
