@@ -115,5 +115,5 @@ data:
 ```
 To enable alertmanager in kubeenforcer:
 ```bash
-helm upgrade --install kubeenforcer charts/kubeenforcer -n kubescape --set admissionWebhook.enable=true --set admissionWebhook.endpoint=<ALERT_MANAGER_SERVICE_ENDPOINT:PORT>
+helm upgrade --install kubeenforcer charts/kubeenforcer -n kubescape --set admissionWebhook.alertmanager.enabled=true --set admissionWebhook.alertmanager.endpoint=<ALERT_MANAGER_SERVICE_ENDPOINT:PORT>
 ```
