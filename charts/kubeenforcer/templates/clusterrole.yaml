@@ -20,3 +20,9 @@ rules:
   - get
   - list
   - watch
+- apiGroups: 
+  - admissionregistration.x-k8s.io
+  resources:
+  - validatingadmissionpolicies/status
+  verbs:
+  - update
