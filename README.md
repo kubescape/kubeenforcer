@@ -90,23 +90,30 @@ spec:
 
 And the alert manager config:
 ```yaml
-global:
-  smtp_smarthost: smtp-server:port   # SMTP server and port
-  smtp_from: sender@email.com    # Sender email address
-  smtp_auth_username: ""     # SMTP username
-  smtp_auth_password: ""     # SMTP password
-  smtp_require_tls: true                # Require TLS encryption
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: alertmanager-config
+  namespace: kubescape
+data:
+  alertmanager.yml: |-
+    global:
+      smtp_smarthost: smtp-server:port   # SMTP server and port
+      smtp_from: sender@email.com    # Sender email address
+      smtp_auth_username: ""     # SMTP username
+      smtp_auth_password: ""     # SMTP password
+      smtp_require_tls: true                # Require TLS encryption
 
-route:
-  group_by: ['alertname']
-  receiver: email-notifier
+    route:
+      group_by: ['alertname']
+      receiver: email-notifier
 
-receivers:
-- name: email-notifier
-  email_configs:
-  - to: your@email.com
+    receivers:
+    - name: email-notifier
+      email_configs:
+      - to: your@email.com
 ```
 To enable alertmanager in kubeenforcer:
 ```bash
-helm upgrade --install kubeenforcer -n kubescape -set admissionWebhook.enable=true -set admissionWebhook.endpoint=<ALERT_MANAGER_SERVICE_ENDPOINT:PORT>
+helm upgrade --install kubeenforcer charts/kubeenforcer -n kubescape --set admissionWebhook.alertmanager.enabled=true --set admissionWebhook.alertmanager.endpoint=<ALERT_MANAGER_SERVICE_ENDPOINT:PORT>
 ```
