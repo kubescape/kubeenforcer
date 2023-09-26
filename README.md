@@ -31,7 +31,7 @@ helm install kubeenforcer -n kubescape ./charts/kubeenforcer
 ### Installing Polices
 *Example polices 🚧*
 ```bash
-kubectl apply -f https://github.com/kubescape/cel-admission-library/releases/latest/download/kubescape-validating-admission-policies.yaml
+kubectl apply -f https://github.com/kubescape/cel-admission-library/releases/download/v0.6/kubescape-validating-admission-policies-x-v1alpha1.yaml
 ```
 
 ### Installing Policy Bindings
