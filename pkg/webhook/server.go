@@ -10,6 +10,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,6 +25,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apiserver/pkg/admission"
+
+	//admissionAudit "k8s.io/apiserver/pkg/audit"
 	"k8s.io/apiserver/pkg/authentication/user"
 	"k8s.io/klog/v2"
 )
@@ -235,6 +238,8 @@ func (wh *webhook) handleWebhookValidate(w http.ResponseWriter, req *http.Reques
 
 	err = nil
 
+	var attrs admission.Attributes
+
 	if wh.validator.Handles(admission.Operation(parsed.Request.Operation)) {
 		var object runtime.Object
 		var oldObject runtime.Object
@@ -308,7 +313,7 @@ func (wh *webhook) handleWebhookValidate(w http.ResponseWriter, req *http.Reques
 
 		//!TODO: Parse options as v1.CreateOptions, v1.DeleteOptions, or v1.PatchOptions
 
-		attrs := admission.NewAttributesRecord(
+		attrs = admission.NewAttributesRecord(
 			object,
 			oldObject,
 			schema.GroupVersionKind(parsed.Request.Kind),
@@ -331,6 +336,33 @@ func (wh *webhook) handleWebhookValidate(w http.ResponseWriter, req *http.Reques
 			})
 
 		err = wh.validator.Validate(context.TODO(), attrs, wh.objectInferfaces)
+
+		// new := attrs.(metav1.Object)
+		// logger.Info("annotations", "cyber", new.GetAnnotations())
+		//annotations := reflect.ValueOf(attrs).Elem().FieldByName("annotations").Interface().(map[string]annotation)
+		// TODO: cast the attrs to the attributesRecord and then get the annotations.
+		//attributesRecord := reflect.TypeOf(attrs).Elem()
+		//attrs.(privateAnnotationsGetter).getAnnotations(audit.LevelRequestResponse)
+
+		// type attributesRecord interface{}
+
+		// realAttrs := attrs.(attributesRecord)
+
+		// method := reflect.ValueOf(realAttrs).MethodByName("getAnnotations")
+		// if method.IsValid() {
+		// 	logger.Info("The metod is valid")
+		// 	annotations := method.Call([]reflect.Value{reflect.ValueOf(audit.LevelRequestResponse)})[0]
+		// 	if annotations.IsValid() {
+		// 		realAnnotations := annotations.Interface().(map[string]string)
+		// 		value, ok := realAnnotations["validation.policy.admission.k8s.io/validation_failure"]
+		// 		if ok {
+		// 			logger.Info("Cyber over here: ", "Cyber", value)
+		// 		}
+		// 	}
+		// }
+
+		//logger.Info("review response", "uid", parsed.Request.UID, "allowed", err == nil)
+		//logger.Info("The attrs are", "attrs", attrs)
 	}
 
 	response := reviewResponse(
@@ -340,6 +372,7 @@ func (wh *webhook) handleWebhookValidate(w http.ResponseWriter, req *http.Reques
 		parsed.Request.Resource.Resource,
 		parsed.Request.Name,
 		parsed.Request.Namespace,
+		attrs,
 	)
 
 	out, err := json.Marshal(response)
@@ -369,34 +402,81 @@ func (wh *webhook) handleWebhookValidate(w http.ResponseWriter, req *http.Reques
 	)
 }
 
-func reviewResponse(uid types.UID, err error, aletmanagerHost string, resource string, name string, namespace string) *admissionv1.AdmissionReview {
-	// Currently hard coded and commented logic in order to just audit, but in order to get the content we need the policy to be deny.
-	// allowed := err == nil
-	//var status int32 = http.StatusAccepted
-	// if err != nil {
-	// 	status = http.StatusForbidden
-	// }
+func getValidationAnnotations(attrs admission.Attributes) (audit bool, deny bool) {
+	validationActionsPattern := `validationActions":\[(.*?)\]`
+	regex, _ := regexp.Compile(validationActionsPattern)
+
+	match := regex.FindStringSubmatch(fmt.Sprintf("%+v", attrs))
+	if len(match) >= 2 {
+		actions := match[1]
+		audit = strings.Contains(actions, "Audit")
+		deny = strings.Contains(actions, "Deny")
+	}
+
+	logger.Info("The actions are", "audit", audit, "deny", deny)
+
+	return audit, deny
+}
+
+func getMessage(attrs admission.Attributes) (message string) {
+	validationMessagePattern := `message":"(.*?)"`
+	regex, _ := regexp.Compile(validationMessagePattern)
+
+	match := regex.FindStringSubmatch(fmt.Sprintf("%+v", attrs))
+	if len(match) >= 2 {
+		message = match[1]
+	}
+
+	logger.Info("The message is", "message", message)
+
+	return message
+}
+
+func getPolicy(attrs admission.Attributes) (policy string) {
+	policyPattern := `policy":"(.*?)"`
+	regex, _ := regexp.Compile(policyPattern)
+
+	match := regex.FindStringSubmatch(fmt.Sprintf("%+v", attrs))
+	if len(match) >= 2 {
+		policy = match[1]
+	}
+
+	logger.Info("The policy is", "policy", policy)
+
+	return policy
+}
+
+func reviewResponse(uid types.UID, err error, aletmanagerHost string, resource string, name string, namespace string, attrs admission.Attributes) *admissionv1.AdmissionReview {
+	allowed := err == nil
+	var status int32 = http.StatusAccepted
+	if err != nil {
+		status = http.StatusForbidden
+	}
 	reason := metav1.StatusReasonUnknown
 	message := "valid"
-	// if err != nil {
-	// 	message = err.Error()
-	// }
+	if err != nil {
+		message = err.Error()
+	}
 
 	var statusErr *k8serrors.StatusError
 	if ok := errors.As(err, &statusErr); ok {
 		reason = statusErr.ErrStatus.Reason
 		message = statusErr.ErrStatus.Message
-		//status = statusErr.ErrStatus.Code
+		status = statusErr.ErrStatus.Code
+	}
+
+	audit, deny := getValidationAnnotations(attrs)
+	if audit || deny {
 		if aletmanagerHost != "" {
-			policyName := regexp.MustCompile(`ValidatingAdmissionPolicy '([^']+)'`).FindStringSubmatch(message)
+			policyName := getPolicy(attrs)
 			alerter := alertmanager.New(aletmanagerHost, "")
 			alertInfo := alertmanager.AlertInfo{
-				Name:        fmt.Sprintf("Failed Policy: %v", policyName[1]),
+				Name:        fmt.Sprintf("Failed Policy: %v", policyName),
 				Severity:    string(reason),
 				Resource:    resource,
 				Instance:    name,
 				Namespace:   namespace,
-				Description: message,
+				Description: getMessage(attrs),
 			}
 			alerter.Alert(&alertInfo)
 		}
@@ -409,14 +489,11 @@ func reviewResponse(uid types.UID, err error, aletmanagerHost string, resource s
 		},
 		Response: &admissionv1.AdmissionResponse{
 			UID:     uid,
-			Allowed: true, // Currently hard coding it.
+			Allowed: allowed, // Currently hard coding it.
 			Result: &metav1.Status{
-				//Code:    status,
-				Code: http.StatusAccepted, // Currently hard coding it.
-				//Message: message,
-				Message: "valid", // Currently hard coding it.
-				//Reason:  reason,
-				Reason: metav1.StatusReasonUnknown, // Currently hard coding it.
+				Code:    status,
+				Message: message,
+				Reason:  reason,
 			},
 		},
 	}
