@@ -336,33 +336,6 @@ func (wh *webhook) handleWebhookValidate(w http.ResponseWriter, req *http.Reques
 			})
 
 		err = wh.validator.Validate(context.TODO(), attrs, wh.objectInferfaces)
-
-		// new := attrs.(metav1.Object)
-		// logger.Info("annotations", "cyber", new.GetAnnotations())
-		//annotations := reflect.ValueOf(attrs).Elem().FieldByName("annotations").Interface().(map[string]annotation)
-		// TODO: cast the attrs to the attributesRecord and then get the annotations.
-		//attributesRecord := reflect.TypeOf(attrs).Elem()
-		//attrs.(privateAnnotationsGetter).getAnnotations(audit.LevelRequestResponse)
-
-		// type attributesRecord interface{}
-
-		// realAttrs := attrs.(attributesRecord)
-
-		// method := reflect.ValueOf(realAttrs).MethodByName("getAnnotations")
-		// if method.IsValid() {
-		// 	logger.Info("The metod is valid")
-		// 	annotations := method.Call([]reflect.Value{reflect.ValueOf(audit.LevelRequestResponse)})[0]
-		// 	if annotations.IsValid() {
-		// 		realAnnotations := annotations.Interface().(map[string]string)
-		// 		value, ok := realAnnotations["validation.policy.admission.k8s.io/validation_failure"]
-		// 		if ok {
-		// 			logger.Info("Cyber over here: ", "Cyber", value)
-		// 		}
-		// 	}
-		// }
-
-		//logger.Info("review response", "uid", parsed.Request.UID, "allowed", err == nil)
-		//logger.Info("The attrs are", "attrs", attrs)
 	}
 
 	response := reviewResponse(
@@ -489,7 +462,7 @@ func reviewResponse(uid types.UID, err error, aletmanagerHost string, resource s
 		},
 		Response: &admissionv1.AdmissionResponse{
 			UID:     uid,
-			Allowed: allowed, // Currently hard coding it.
+			Allowed: allowed,
 			Result: &metav1.Status{
 				Code:    status,
 				Message: message,
