@@ -5,5 +5,4 @@ metadata:
 spec:
   policyName: cluster-policy-deny-priviliged-flag
   validationActions:
-  - Deny
   - Audit

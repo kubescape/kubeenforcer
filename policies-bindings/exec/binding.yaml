@@ -5,5 +5,4 @@ metadata:
 spec:
   policyName: cluster-policy-deny-exec
   validationActions:
-  - Deny
   - Audit
