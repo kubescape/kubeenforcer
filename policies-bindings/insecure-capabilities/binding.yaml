@@ -7,5 +7,4 @@ spec:
   paramRef:
     name: basic-policy-configuration
   validationActions:
-  - Deny
   - Audit
