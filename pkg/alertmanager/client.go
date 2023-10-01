@@ -49,11 +49,12 @@ func (alertmanager *AlertManager) createAlert(alertInfo *AlertInfo) *models.Post
 		},
 		Alert: models.Alert{
 			Labels: map[string]string{
-				"alertname": alertInfo.Name,
-				"severity":  alertInfo.Severity,
-				"resource":  alertInfo.Resource,
-				"instance":  alertInfo.Instance,
-				"namespace": alertInfo.Namespace,
+				"alertname":       alertInfo.Name,
+				"severity":        alertInfo.Severity,
+				"resource":        alertInfo.Resource,
+				"instance":        alertInfo.Instance,
+				"namespace":       alertInfo.Namespace,
+				"requesting_user": alertInfo.RequestingUser,
 			},
 		},
 		StartsAt: strfmt.DateTime(time.Now().UTC()),
