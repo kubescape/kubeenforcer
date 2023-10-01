@@ -344,6 +344,7 @@ func (wh *webhook) handleWebhookValidate(w http.ResponseWriter, req *http.Reques
 		parsed.Request.Name,
 		parsed.Request.Namespace,
 		attrs,
+		&parsed.Request.UserInfo,
 	)
 
 	out, err := json.Marshal(response)
@@ -417,7 +418,7 @@ func getPolicy(attrs admission.Attributes) (policy string) {
 	return policy
 }
 
-func reviewResponse(uid types.UID, err error, aletmanagerHost string, resource string, name string, namespace string, attrs admission.Attributes) *admissionv1.AdmissionReview {
+func reviewResponse(uid types.UID, err error, aletmanagerHost string, resource string, name string, namespace string, attrs admission.Attributes, requestingUser *authenticationv1.UserInfo) *admissionv1.AdmissionReview {
 	allowed := err == nil
 	var status int32 = http.StatusAccepted
 	if err != nil {
@@ -442,12 +443,13 @@ func reviewResponse(uid types.UID, err error, aletmanagerHost string, resource s
 			policyName := getPolicy(attrs)
 			alerter := alertmanager.New(aletmanagerHost, "")
 			alertInfo := alertmanager.AlertInfo{
-				Name:        fmt.Sprintf("Failed Policy: %v", policyName),
-				Severity:    string(reason),
-				Resource:    resource,
-				Instance:    name,
-				Namespace:   namespace,
-				Description: getMessage(attrs),
+				Name:           fmt.Sprintf("Failed Policy: %v", policyName),
+				Severity:       string(reason),
+				Resource:       resource,
+				Instance:       name,
+				Namespace:      namespace,
+				RequestingUser: requestingUser.Username,
+				Description:    getMessage(attrs),
 			}
 			alerter.Alert(&alertInfo)
 		}
