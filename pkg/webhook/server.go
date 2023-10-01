@@ -217,17 +217,17 @@ func (wh *webhook) handleWebhookValidate(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	logger.Info(
-		"review request",
-		"user",
-		parsed.Request.UserInfo.String(),
-		"resource",
-		parsed.Request.Resource.String(),
-		"operation",
-		parsed.Request.Operation,
-		"uid",
-		parsed.Request.UID,
-	)
+	// logger.Info(
+	// 	"review request",
+	// 	"user",
+	// 	parsed.Request.UserInfo.String(),
+	// 	"resource",
+	// 	parsed.Request.Resource.String(),
+	// 	"operation",
+	// 	parsed.Request.Operation,
+	// 	"uid",
+	// 	parsed.Request.UID,
+	// )
 
 	failure := func(err error, status int) {
 		http.Error(w, err.Error(), status)
@@ -355,23 +355,23 @@ func (wh *webhook) handleWebhookValidate(w http.ResponseWriter, req *http.Reques
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(out)
-	logger.Info(
-		"review response",
-		"resource",
-		parsed.Request.Resource.String(),
-		"namespace",
-		parsed.Request.Namespace,
-		"name",
-		parsed.Request.Name,
-		"allowed",
-		response.Response.Allowed,
-		"msg",
-		response.Response.Result.Message,
-		"reason",
-		response.Response.Result.Reason,
-		"uid",
-		parsed.Request.UID,
-	)
+	// logger.Info(
+	// 	"review response",
+	// 	"resource",
+	// 	parsed.Request.Resource.String(),
+	// 	"namespace",
+	// 	parsed.Request.Namespace,
+	// 	"name",
+	// 	parsed.Request.Name,
+	// 	"allowed",
+	// 	response.Response.Allowed,
+	// 	"msg",
+	// 	response.Response.Result.Message,
+	// 	"reason",
+	// 	response.Response.Result.Reason,
+	// 	"uid",
+	// 	parsed.Request.UID,
+	// )
 }
 
 func getValidationAnnotations(attrs admission.Attributes) (audit bool, deny bool) {
@@ -385,7 +385,7 @@ func getValidationAnnotations(attrs admission.Attributes) (audit bool, deny bool
 		deny = strings.Contains(actions, "Deny")
 	}
 
-	logger.Info("The actions are", "audit", audit, "deny", deny)
+	// logger.Info("The actions are", "audit", audit, "deny", deny)
 
 	return audit, deny
 }
@@ -399,7 +399,7 @@ func getMessage(attrs admission.Attributes) (message string) {
 		message = match[1]
 	}
 
-	logger.Info("The message is", "message", message)
+	// logger.Info("The message is", "message", message)
 
 	return message
 }
@@ -413,7 +413,7 @@ func getPolicy(attrs admission.Attributes) (policy string) {
 		policy = match[1]
 	}
 
-	logger.Info("The policy is", "policy", policy)
+	// logger.Info("The policy is", "policy", policy)
 
 	return policy
 }
