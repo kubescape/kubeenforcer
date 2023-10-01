@@ -26,3 +26,11 @@ rules:
   - validatingadmissionpolicies/status
   verbs:
   - update
+- apiGroups:
+  - kubescape.io
+  resources:
+  - controlconfigurations
+  verbs:
+  - watch
+  - list
+  - get
