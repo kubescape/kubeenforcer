@@ -5,6 +5,6 @@ metadata:
 spec:
   policyName: cluster-policy-deny-insecure-capabilities
   paramRef:
-    name: basic-policy-configuration
+    name: basic-control-configuration
   validationActions:
   - Audit
