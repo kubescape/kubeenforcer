@@ -55,6 +55,7 @@ func (alertmanager *AlertManager) createAlert(alertInfo *AlertInfo) *models.Post
 				"instance":        alertInfo.Instance,
 				"namespace":       alertInfo.Namespace,
 				"requesting_user": alertInfo.RequestingUser,
+				"timestamp":       alertInfo.Timestamp,
 			},
 		},
 		StartsAt: strfmt.DateTime(time.Now().UTC()),

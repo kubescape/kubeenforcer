@@ -449,6 +449,7 @@ func reviewResponse(uid types.UID, err error, aletmanagerHost string, resource s
 				Instance:       name,
 				Namespace:      namespace,
 				RequestingUser: requestingUser.Username,
+				Timestamp:      time.Now().String(),
 				Description:    getMessage(attrs),
 			}
 			alerter.Alert(&alertInfo)
