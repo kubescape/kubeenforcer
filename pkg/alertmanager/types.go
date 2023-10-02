@@ -8,4 +8,5 @@ type AlertInfo struct {
 	Description    string
 	Namespace      string
 	RequestingUser string
+	Timestamp      string
 }
