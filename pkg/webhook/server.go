@@ -73,15 +73,14 @@ func notifyChanges(ctx context.Context, paths ...string) <-chan struct{} {
 		modTime time.Time
 		err     string
 	}
-	infos := map[string]info{}
 	getInfos := func() map[string]info {
 		res := map[string]info{}
 		for _, v := range paths {
 			fileInfo, err := os.Stat(v)
 			if err != nil {
-				infos[v] = info{err: err.Error()}
+				res[v] = info{err: err.Error()}
 			} else {
-				infos[v] = info{modTime: fileInfo.ModTime()}
+				res[v] = info{modTime: fileInfo.ModTime()}
 			}
 
 		}
